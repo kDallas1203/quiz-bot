@@ -65,6 +65,20 @@ def handle_solution_attempt(bot, update):
         update.message.reply_text('Неправильно… Попробуешь ещё раз?')
 
 
+def handle_give_up(bot, update):
+    user_id = get_user_id(update)
+    question = get_user_question(r, user_id)
+
+    if not question:
+        update.message.reply_text('Не сдавайтесь. Для начала получите вопрос')
+        return
+
+    update.message.reply_text(f'Правильный ответ: "*{question["answer"]}*"', parse_mode="Markdown")
+    del_user_question(r, user_id)
+
+    handle_new_question_request(bot, update)
+
+
 if __name__ == '__main__':
     load_dotenv()
     logging.basicConfig(level=logging.INFO)
@@ -80,9 +94,14 @@ if __name__ == '__main__':
     dispatcher = updater.dispatcher
 
     conv_handler = ConversationHandler(
-        entry_points=[CommandHandler('start', start_handler)],
+        entry_points=[CommandHandler('start', start_handler),
+                      RegexHandler('^Новый вопрос$', handle_new_question_request),
+                      RegexHandler('^Сдаться$', handle_give_up),
+                      MessageHandler(Filters.text, handle_solution_attempt)
+                      ],
         states={
             CHOOSE: [RegexHandler('^Новый вопрос$', handle_new_question_request),
+                     RegexHandler('^Сдаться$', handle_give_up),
                      MessageHandler(Filters.text, handle_solution_attempt)],
         },
         fallbacks=[ConversationHandler.END]
