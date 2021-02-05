@@ -1,0 +1,9 @@
+certifi==2020.12.5
+cffi==1.14.4
+cryptography==3.3.1
+future==0.18.2
+pycparser==2.20
+python-dotenv==0.15.0
+python-telegram-bot==11.1.0
+redis==3.5.3
+six==1.15.0
