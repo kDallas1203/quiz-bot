@@ -6,6 +6,10 @@ from os.path import join
 logger = logging.getLogger(__name__)
 
 
+def get_user_id(prefix: str, user_id: str) -> str:
+    return f'{prefix}_{user_id}'
+
+
 def parse_blocks(file_content) -> dict:
     result = {}
     questions_blocks = []
