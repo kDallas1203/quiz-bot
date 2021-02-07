@@ -8,6 +8,7 @@ from vk_api.keyboard import VkKeyboard
 from vk_api.longpoll import VkLongPoll, VkEventType
 
 from db_utils import get_db_client
+from exceptions import UserHasNoQuestion
 from quiz_service import get_new_question, give_up_and_get_solution, solution_attempt
 from utils import get_user_id
 
@@ -48,7 +49,16 @@ def handle_new_question_request(event, vk_api):
 
 def handle_give_up(event, vk_api):
     user_id = get_user_id(prefix='vk', user_id=event.user_id)
-    solution = give_up_and_get_solution(db=r, user_id=user_id)
+
+    try:
+        solution = give_up_and_get_solution(db=r, user_id=user_id)
+    except UserHasNoQuestion:
+        vk_api.messages.send(
+            user_id=event.user_id,
+            message='Не сдавайтесь. Для начала получите вопрос',
+            random_id=random.randint(1, 1000)
+        )
+        return
 
     vk_api.messages.send(
         user_id=event.user_id,
@@ -61,7 +71,15 @@ def handle_give_up(event, vk_api):
 
 def handle_solution_attempt(event, vk_api):
     user_id = get_user_id('vk', event.user_id)
-    solution_result = solution_attempt(db=r, user_id=user_id, answer=event.text)
+    try:
+        solution_result = solution_attempt(db=r, user_id=user_id, answer=event.text)
+    except UserHasNoQuestion:
+        vk_api.messages.send(
+            user_id=event.user_id,
+            message='Получите вопрос, нажав кнопку "Новый вопрос"',
+            random_id=random.randint(1, 1000)
+        )
+        return
 
     vk_api.messages.send(
         user_id=event.user_id,

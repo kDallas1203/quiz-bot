@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 from telegram.ext import CommandHandler, Updater, ConversationHandler, RegexHandler, MessageHandler, Filters
 
 from db_utils import get_db_client
+from exceptions import UserHasNoQuestion
 from quiz_service import get_new_question, give_up_and_get_solution, solution_attempt
 from utils import get_user_id
 
@@ -38,13 +39,23 @@ def handle_new_question_request(bot, update):
 
 def handle_solution_attempt(bot, update):
     user_id = get_user_id(prefix='tg', user_id=update.message.chat_id)
-    solution_result = solution_attempt(db=r, user_id=user_id, answer=update.message.text)
+    try:
+        solution_result = solution_attempt(db=r, user_id=user_id, answer=update.message.text)
+    except UserHasNoQuestion:
+        update.message.reply_text('Получите вопрос, нажав кнопку "Новый вопрос"')
+        return
+
     update.message.reply_text(solution_result)
 
 
 def handle_give_up(bot, update):
     user_id = get_user_id(prefix='tg', user_id=update.message.chat_id)
-    solution = give_up_and_get_solution(db=r, user_id=user_id)
+
+    try:
+        solution = give_up_and_get_solution(db=r, user_id=user_id)
+    except UserHasNoQuestion:
+        update.message.reply_text('Не сдавайтесь. Для начала получите вопрос')
+        return
 
     update.message.reply_text(f'Правильный ответ: *"{solution}"*', parse_mode="Markdown")
 

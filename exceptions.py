@@ -1,0 +1,2 @@
+class UserHasNoQuestion(Exception):
+    pass
