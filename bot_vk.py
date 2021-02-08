@@ -92,7 +92,7 @@ if __name__ == '__main__':
     load_dotenv()
     logging.basicConfig(level=logging.INFO)
 
-    r = get_db_client(host=os.getenv('REDIS_HOST'), port=os.getenv('REDIS_PORT'))
+    r = get_db_client(host=os.getenv('REDIS_HOST'), port=os.getenv('REDIS_PORT'), password=os.getenv('REDIS_PASSWORD'))
 
     vk_session = vk.VkApi(token=os.getenv('VK_API_KEY'))
     vk_api = vk_session.get_api()
