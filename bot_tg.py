@@ -1,11 +1,11 @@
 import logging
 import os
 
+import redis
 import telegram
 from dotenv import load_dotenv
 from telegram.ext import CommandHandler, Updater, ConversationHandler, RegexHandler, MessageHandler, Filters
 
-from db_utils import get_db_client
 from exceptions import UserHasNoQuestion
 from quiz_service import get_new_question, give_up_and_get_solution, solution_attempt
 
@@ -69,7 +69,8 @@ if __name__ == '__main__':
     load_dotenv()
     logging.basicConfig(level=logging.INFO)
 
-    r = get_db_client(host=os.getenv('REDIS_HOST'), port=os.getenv('REDIS_PORT'), password=os.getenv('REDIS_PASSWORD'))
+    r = redis.Redis(host=os.getenv('REDIS_HOST'), port=os.getenv('REDIS_PORT'), password=os.getenv('REDIS_PASSWORD'))
+    r.ping()
 
     updater = Updater(os.getenv('TELEGRAM_BOT_TOKEN'))
     dispatcher = updater.dispatcher
@@ -89,7 +90,6 @@ if __name__ == '__main__':
     )
 
     dispatcher.add_handler(conv_handler)
-    # dispatcher.add_handler(MessageHandler(Filters.text, message_handler))
 
     logger.info('Long polling started')
     updater.start_polling()

@@ -1,7 +1,5 @@
 import json
 import logging
-import sys
-import redis
 
 logger = logging.getLogger(__name__)
 
@@ -31,17 +29,6 @@ def del_user_question(db, user_id):
 
 def user_has_question(db, user_id):
     return db.exists(user_id)
-
-
-def get_db_client(host, port, password) -> redis.Redis:
-    try:
-        db = redis.Redis(host=host, port=port, password=password)
-        db.ping()
-    except redis.exceptions.RedisError as error:
-        logger.error('Redis exception', exc_info=True)
-        sys.exit(1)
-
-    return db
 
 
 if __name__ == '__main__':

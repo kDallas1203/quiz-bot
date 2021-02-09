@@ -2,12 +2,12 @@ import logging
 import os
 import random
 
+import redis
 import vk_api as vk
 from dotenv import load_dotenv
 from vk_api.keyboard import VkKeyboard
 from vk_api.longpoll import VkLongPoll, VkEventType
 
-from db_utils import get_db_client
 from exceptions import UserHasNoQuestion
 from quiz_service import get_new_question, give_up_and_get_solution, solution_attempt
 
@@ -95,7 +95,8 @@ if __name__ == '__main__':
     load_dotenv()
     logging.basicConfig(level=logging.INFO)
 
-    r = get_db_client(host=os.getenv('REDIS_HOST'), port=os.getenv('REDIS_PORT'), password=os.getenv('REDIS_PASSWORD'))
+    r = redis.Redis(host=os.getenv('REDIS_HOST'), port=os.getenv('REDIS_PORT'), password=os.getenv('REDIS_PASSWORD'))
+    r.ping()
 
     vk_session = vk.VkApi(token=os.getenv('VK_API_KEY'))
     vk_api = vk_session.get_api()
