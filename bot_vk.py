@@ -55,40 +55,36 @@ def handle_give_up(event, vk_api):
 
     try:
         solution = give_up_and_get_solution(db=r, user_id=user_id)
+        vk_api.messages.send(
+            user_id=event.user_id,
+            message=f'Правильный ответ: {solution}',
+            random_id=random.randint(1, 1000)
+        )
+
+        handle_new_question_request(event, vk_api)
     except UserHasNoQuestion:
         vk_api.messages.send(
             user_id=event.user_id,
             message='Не сдавайтесь. Для начала получите вопрос',
             random_id=random.randint(1, 1000)
         )
-        return
-
-    vk_api.messages.send(
-        user_id=event.user_id,
-        message=f'Правильный ответ: {solution}',
-        random_id=random.randint(1, 1000)
-    )
-
-    handle_new_question_request(event, vk_api)
 
 
 def handle_solution_attempt(event, vk_api):
     user_id = get_user_id_with_prefix(event)
     try:
         solution_result = solution_attempt(db=r, user_id=user_id, answer=event.text)
+        vk_api.messages.send(
+            user_id=event.user_id,
+            message=solution_result,
+            random_id=random.randint(1, 1000)
+        )
     except UserHasNoQuestion:
         vk_api.messages.send(
             user_id=event.user_id,
             message='Получите вопрос, нажав кнопку "Новый вопрос"',
             random_id=random.randint(1, 1000)
         )
-        return
-
-    vk_api.messages.send(
-        user_id=event.user_id,
-        message=solution_result,
-        random_id=random.randint(1, 1000)
-    )
 
 
 if __name__ == '__main__':
