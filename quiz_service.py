@@ -41,7 +41,3 @@ def solution_attempt(db, user_id, answer) -> str:
         return 'Правильно! Поздравляю! Для следующего вопроса нажми «Новый вопрос»'
     else:
         return 'Неправильно… Попробуешь ещё раз?'
-
-
-if __name__ == '__main__':
-    logging.basicConfig(level=logging.INFO)

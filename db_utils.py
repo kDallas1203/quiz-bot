@@ -29,7 +29,3 @@ def del_user_question(db, user_id):
 
 def user_has_question(db, user_id):
     return db.exists(user_id)
-
-
-if __name__ == '__main__':
-    logging.basicConfig(level=logging.INFO)

@@ -55,11 +55,3 @@ def get_random_question() -> dict:
     questions = parse_blocks(blocks)
 
     return random.choice(list(questions.values()))
-
-
-def main():
-    logging.basicConfig(level=logging.INFO)
-
-
-if __name__ == '__main__':
-    main()
