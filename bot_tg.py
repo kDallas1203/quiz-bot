@@ -8,11 +8,14 @@ from telegram.ext import CommandHandler, Updater, ConversationHandler, RegexHand
 from db_utils import get_db_client
 from exceptions import UserHasNoQuestion
 from quiz_service import get_new_question, give_up_and_get_solution, solution_attempt
-from utils import get_user_id
 
 logger = logging.getLogger(__name__)
 
 CHOOSE = range(1)
+
+
+def get_user_id_with_prefix(update):
+    return f'tg_{update.message.chat_id}'
 
 
 def start_handler(bot, update):
@@ -28,7 +31,7 @@ def start_handler(bot, update):
 
 
 def handle_new_question_request(bot, update):
-    user_id = get_user_id(prefix='tg', user_id=update.message.chat_id)
+    user_id = get_user_id_with_prefix(update)
 
     question = get_new_question(db=r, user_id=user_id)
 
@@ -38,7 +41,7 @@ def handle_new_question_request(bot, update):
 
 
 def handle_solution_attempt(bot, update):
-    user_id = get_user_id(prefix='tg', user_id=update.message.chat_id)
+    user_id = get_user_id_with_prefix(update)
     try:
         solution_result = solution_attempt(db=r, user_id=user_id, answer=update.message.text)
     except UserHasNoQuestion:
@@ -49,7 +52,7 @@ def handle_solution_attempt(bot, update):
 
 
 def handle_give_up(bot, update):
-    user_id = get_user_id(prefix='tg', user_id=update.message.chat_id)
+    user_id = get_user_id_with_prefix(update)
 
     try:
         solution = give_up_and_get_solution(db=r, user_id=user_id)
