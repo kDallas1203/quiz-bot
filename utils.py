@@ -6,10 +6,6 @@ from os.path import join
 logger = logging.getLogger(__name__)
 
 
-def get_user_id(prefix: str, user_id: str) -> str:
-    return f'{prefix}_{user_id}'
-
-
 def parse_blocks(file_content) -> dict:
     result = {}
     questions_blocks = []
@@ -32,7 +28,7 @@ def parse_blocks(file_content) -> dict:
     return result
 
 
-def get_file(path):
+def get_file_with_questions(path):
     logger.info('Open file from path {}'.format(path))
     with open(path, "r", encoding="KOI8-R") as _file:
         file_content = _file.read()
@@ -55,15 +51,7 @@ def get_question_files_paths():
 def get_random_question() -> dict:
     files_path = get_question_files_paths()
     random_file_path = random.choice(files_path)
-    blocks = get_file(random_file_path)
+    blocks = get_file_with_questions(random_file_path)
     questions = parse_blocks(blocks)
 
     return random.choice(list(questions.values()))
-
-
-def main():
-    logging.basicConfig(level=logging.INFO)
-
-
-if __name__ == '__main__':
-    main()

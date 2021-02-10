@@ -1,18 +1,21 @@
 import logging
 import os
 
+import redis
 import telegram
 from dotenv import load_dotenv
 from telegram.ext import CommandHandler, Updater, ConversationHandler, RegexHandler, MessageHandler, Filters
 
-from db_utils import get_db_client
-from exceptions import UserHasNoQuestion
+from exceptions import UserHasNoQuestion, TelegramUserHasNoQuestion
 from quiz_service import get_new_question, give_up_and_get_solution, solution_attempt
-from utils import get_user_id
 
 logger = logging.getLogger(__name__)
 
 CHOOSE = range(1)
+
+
+def get_user_id_with_prefix(update):
+    return f'tg_{update.message.chat_id}'
 
 
 def start_handler(bot, update):
@@ -28,7 +31,7 @@ def start_handler(bot, update):
 
 
 def handle_new_question_request(bot, update):
-    user_id = get_user_id(prefix='tg', user_id=update.message.chat_id)
+    user_id = get_user_id_with_prefix(update)
 
     question = get_new_question(db=r, user_id=user_id)
 
@@ -38,35 +41,37 @@ def handle_new_question_request(bot, update):
 
 
 def handle_solution_attempt(bot, update):
-    user_id = get_user_id(prefix='tg', user_id=update.message.chat_id)
+    user_id = get_user_id_with_prefix(update)
     try:
         solution_result = solution_attempt(db=r, user_id=user_id, answer=update.message.text)
     except UserHasNoQuestion:
-        update.message.reply_text('Получите вопрос, нажав кнопку "Новый вопрос"')
-        return
-
+        raise TelegramUserHasNoQuestion(message='Получите вопрос, нажав кнопку "Новый вопрос"')
     update.message.reply_text(solution_result)
 
 
 def handle_give_up(bot, update):
-    user_id = get_user_id(prefix='tg', user_id=update.message.chat_id)
+    user_id = get_user_id_with_prefix(update)
 
     try:
         solution = give_up_and_get_solution(db=r, user_id=user_id)
     except UserHasNoQuestion:
-        update.message.reply_text('Не сдавайтесь. Для начала получите вопрос')
-        return
+        raise TelegramUserHasNoQuestion(message="Не сдавайтесь. Для начала получите вопрос")
 
     update.message.reply_text(f'Правильный ответ: *"{solution}"*', parse_mode="Markdown")
-
     handle_new_question_request(bot, update)
 
+
+
+def error(bot, update, error):
+    logger.warning(f'Update {update} error "{error}"')
+    update.message.reply_text(str(error))
 
 if __name__ == '__main__':
     load_dotenv()
     logging.basicConfig(level=logging.INFO)
 
-    r = get_db_client(host=os.getenv('REDIS_HOST'), port=os.getenv('REDIS_PORT'), password=os.getenv('REDIS_PASSWORD'))
+    r = redis.Redis(host=os.getenv('REDIS_HOST'), port=os.getenv('REDIS_PORT'), password=os.getenv('REDIS_PASSWORD'))
+    r.ping()
 
     updater = Updater(os.getenv('TELEGRAM_BOT_TOKEN'))
     dispatcher = updater.dispatcher
@@ -86,7 +91,7 @@ if __name__ == '__main__':
     )
 
     dispatcher.add_handler(conv_handler)
-    # dispatcher.add_handler(MessageHandler(Filters.text, message_handler))
+    dispatcher.add_error_handler(error)
 
     logger.info('Long polling started')
     updater.start_polling()
