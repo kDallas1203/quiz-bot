@@ -42,23 +42,20 @@ def handle_new_question_request(bot, update):
 
 def handle_solution_attempt(bot, update):
     user_id = get_user_id_with_prefix(update)
-    try:
-        solution_result = solution_attempt(db=r, user_id=user_id, answer=update.message.text)
-        update.message.reply_text(solution_result)
-    except UserHasNoQuestion:
-        update.message.reply_text('Получите вопрос, нажав кнопку "Новый вопрос"')
+    solution_result = solution_attempt(db=r, user_id=user_id, answer=update.message.text)
+    update.message.reply_text(solution_result)
 
 
 def handle_give_up(bot, update):
     user_id = get_user_id_with_prefix(update)
+    solution = give_up_and_get_solution(db=r, user_id=user_id)
+    update.message.reply_text(f'Правильный ответ: *"{solution}"*', parse_mode="Markdown")
+    handle_new_question_request(bot, update)
 
-    try:
-        solution = give_up_and_get_solution(db=r, user_id=user_id)
-        update.message.reply_text(f'Правильный ответ: *"{solution}"*', parse_mode="Markdown")
-        handle_new_question_request(bot, update)
-    except UserHasNoQuestion:
-        update.message.reply_text('Не сдавайтесь. Для начала получите вопрос')
 
+
+def error(bot, update, error):
+    logger.warning(f'Update {update} error "{error}"')
 
 if __name__ == '__main__':
     load_dotenv()
@@ -85,6 +82,7 @@ if __name__ == '__main__':
     )
 
     dispatcher.add_handler(conv_handler)
+    dispatcher.add_error_handler(error)
 
     logger.info('Long polling started')
     updater.start_polling()
