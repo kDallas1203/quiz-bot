@@ -6,7 +6,7 @@ import telegram
 from dotenv import load_dotenv
 from telegram.ext import CommandHandler, Updater, ConversationHandler, RegexHandler, MessageHandler, Filters
 
-from exceptions import UserHasNoQuestion
+from exceptions import UserHasNoQuestion, TelegramUserHasNoQuestion
 from quiz_service import get_new_question, give_up_and_get_solution, solution_attempt
 
 logger = logging.getLogger(__name__)
@@ -42,13 +42,21 @@ def handle_new_question_request(bot, update):
 
 def handle_solution_attempt(bot, update):
     user_id = get_user_id_with_prefix(update)
-    solution_result = solution_attempt(db=r, user_id=user_id, answer=update.message.text)
+    try:
+        solution_result = solution_attempt(db=r, user_id=user_id, answer=update.message.text)
+    except UserHasNoQuestion:
+        raise TelegramUserHasNoQuestion(message='Получите вопрос, нажав кнопку "Новый вопрос"')
     update.message.reply_text(solution_result)
 
 
 def handle_give_up(bot, update):
     user_id = get_user_id_with_prefix(update)
-    solution = give_up_and_get_solution(db=r, user_id=user_id)
+
+    try:
+        solution = give_up_and_get_solution(db=r, user_id=user_id)
+    except UserHasNoQuestion:
+        raise TelegramUserHasNoQuestion(message="Не сдавайтесь. Для начала получите вопрос")
+
     update.message.reply_text(f'Правильный ответ: *"{solution}"*', parse_mode="Markdown")
     handle_new_question_request(bot, update)
 
@@ -56,6 +64,7 @@ def handle_give_up(bot, update):
 
 def error(bot, update, error):
     logger.warning(f'Update {update} error "{error}"')
+    update.message.reply_text(str(error))
 
 if __name__ == '__main__':
     load_dotenv()
