@@ -62,7 +62,7 @@ def handle_give_up(bot, update):
     handle_new_question_request(bot, update)
 
 
-def error(bot, update, error):
+def error_handler(bot, update, error):
     logger.warning(f'Update {update} error "{error}"')
     update.message.reply_text(str(error))
 
@@ -94,7 +94,7 @@ if __name__ == '__main__':
     )
 
     dispatcher.add_handler(conv_handler)
-    dispatcher.add_error_handler(error)
+    dispatcher.add_error_handler(error_handler)
 
     logger.info('Long polling started')
     updater.start_polling()
