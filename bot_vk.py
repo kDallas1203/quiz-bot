@@ -10,6 +10,7 @@ from vk_api.longpoll import VkLongPoll, VkEventType
 
 from exceptions import UserHasNoQuestion
 from quiz_service import get_new_question, give_up_and_get_solution, solution_attempt
+from utils import get_all_questions
 
 logger = logging.getLogger(__name__)
 
@@ -41,7 +42,7 @@ def send_keyboard(event, vk_api, keyboard) -> None:
 def handle_new_question_request(event, vk_api):
     user_id = get_user_id_with_prefix(event)
 
-    question = get_new_question(db=r, user_id=user_id)
+    question = get_new_question(db=r, user_id=user_id, questions=questions)
 
     vk_api.messages.send(
         user_id=event.user_id,
@@ -93,6 +94,8 @@ if __name__ == '__main__':
 
     r = redis.Redis(host=os.getenv('REDIS_HOST'), port=os.getenv('REDIS_PORT'), password=os.getenv('REDIS_PASSWORD'))
     r.ping()
+
+    questions = get_all_questions()
 
     vk_session = vk.VkApi(token=os.getenv('VK_API_KEY'))
     vk_api = vk_session.get_api()

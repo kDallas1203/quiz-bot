@@ -8,6 +8,7 @@ from telegram.ext import CommandHandler, Updater, ConversationHandler, RegexHand
 
 from exceptions import UserHasNoQuestion, TelegramUserHasNoQuestion
 from quiz_service import get_new_question, give_up_and_get_solution, solution_attempt
+from utils import get_all_questions
 
 logger = logging.getLogger(__name__)
 
@@ -33,7 +34,7 @@ def start_handler(bot, update):
 def handle_new_question_request(bot, update):
     user_id = get_user_id_with_prefix(update)
 
-    question = get_new_question(db=r, user_id=user_id)
+    question = get_new_question(db=r, user_id=user_id, questions=questions)
 
     update.message.reply_text(question)
 
@@ -61,10 +62,10 @@ def handle_give_up(bot, update):
     handle_new_question_request(bot, update)
 
 
-
 def error(bot, update, error):
     logger.warning(f'Update {update} error "{error}"')
     update.message.reply_text(str(error))
+
 
 if __name__ == '__main__':
     load_dotenv()
@@ -72,6 +73,8 @@ if __name__ == '__main__':
 
     r = redis.Redis(host=os.getenv('REDIS_HOST'), port=os.getenv('REDIS_PORT'), password=os.getenv('REDIS_PASSWORD'))
     r.ping()
+
+    questions = get_all_questions()
 
     updater = Updater(os.getenv('TELEGRAM_BOT_TOKEN'))
     dispatcher = updater.dispatcher

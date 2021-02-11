@@ -1,7 +1,7 @@
 import logging
 import os
-import random
 from os.path import join
+from uuid import uuid4
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +20,7 @@ def parse_blocks(file_content) -> dict:
         if 'Ответ:' in question_block:
             question = ' '.join(questions_blocks[num - 1].split('\n')[1:])
             answer = ' '.join(question_block.split('\n')[1:])
-            result[f'question_{num}'] = {'question': question, 'answer': answer}
+            result[f'question_{uuid4()}'] = {'question': question, 'answer': answer}
 
     return result
 
@@ -44,10 +44,14 @@ def get_question_files_paths():
     return paths
 
 
-def get_random_question() -> dict:
-    files_path = get_question_files_paths()
-    random_file_path = random.choice(files_path)
-    blocks = get_file_with_questions(random_file_path)
-    questions = parse_blocks(blocks)
+def get_all_questions():
+    questions = dict()
 
-    return random.choice(list(questions.values()))
+    files_path = get_question_files_paths()
+
+    for file_path in files_path:
+        blocks = get_file_with_questions(file_path)
+        parsed_questions = parse_blocks(blocks)
+        questions.update(parsed_questions)
+
+    return questions

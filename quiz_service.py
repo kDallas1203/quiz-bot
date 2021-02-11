@@ -1,18 +1,18 @@
 import logging
+import random
 
 from db_utils import user_has_question, save_user_question, get_user_question, del_user_question
 from exceptions import UserHasNoQuestion
-from utils import get_random_question
 
 logger = logging.getLogger(__name__)
 
 
-def get_new_question(db, user_id) -> str:
+def get_new_question(db, user_id, questions) -> str:
     if user_has_question(db, user_id):
         return 'Вы уже получили вопрос. Хотите сдаться?'
 
     logger.info(f'Generate random question for {user_id}')
-    question = get_random_question()
+    question = random.choice(list(questions.values()))
 
     save_user_question(db, user_id, question)
     return question['question']
