@@ -16,14 +16,11 @@ def parse_blocks(file_content) -> dict:
         if 'Вопрос' in text_block or 'Ответ' in text_block:
             questions_blocks.append(text_block.strip('\n'))
 
-    question_number = 1
-
     for num, question_block in enumerate(questions_blocks):
         if 'Ответ:' in question_block:
             question = ' '.join(questions_blocks[num - 1].split('\n')[1:])
             answer = ' '.join(question_block.split('\n')[1:])
-            result[f'question_{question_number}'] = {'question': question, 'answer': answer}
-            question_number += 1
+            result[f'question_{num}'] = {'question': question, 'answer': answer}
 
     return result
 
@@ -32,7 +29,6 @@ def get_file_with_questions(path):
     logger.info('Open file from path {}'.format(path))
     with open(path, "r", encoding="KOI8-R") as _file:
         file_content = _file.read()
-        _file.close()
 
     return file_content
 
