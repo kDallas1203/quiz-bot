@@ -74,7 +74,10 @@ def handle_give_up(event, vk_api):
 def handle_solution_attempt(event, vk_api):
     user_id = get_user_id_with_prefix(event)
     try:
-        solution_result = solution_attempt(db=r, user_id=user_id, answer=event.text)
+        solution_result = solution_attempt(
+            db=r,
+            user_id=user_id,
+            answer=event.text)
         vk_api.messages.send(
             user_id=event.user_id,
             message=solution_result,
@@ -92,7 +95,11 @@ if __name__ == '__main__':
     load_dotenv()
     logging.basicConfig(level=logging.INFO)
 
-    r = redis.Redis(host=os.getenv('REDIS_HOST'), port=os.getenv('REDIS_PORT'), password=os.getenv('REDIS_PASSWORD'))
+    r = redis.Redis(
+        host=os.getenv('REDIS_HOST'),
+        port=os.getenv('REDIS_PORT'),
+        password=os.getenv('REDIS_PASSWORD'))
+
     r.ping()
 
     questions = get_all_questions()

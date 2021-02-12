@@ -1,7 +1,12 @@
 import logging
 import random
 
-from db_utils import user_has_question, save_user_question, get_user_question, del_user_question
+from db_utils import (
+    user_has_question,
+    save_user_question,
+    get_user_question,
+    del_user_question
+)
 from exceptions import UserHasNoQuestion
 
 logger = logging.getLogger(__name__)
